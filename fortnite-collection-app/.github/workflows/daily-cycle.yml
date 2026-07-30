@@ -1,0 +1,30 @@
+name: Daily Drop Cycle
+
+# Fires at 12:00 UTC daily. Calls the protected /api/cycle endpoint on the
+# deployed site, which (1) authorises via a shared bearer token and
+# (2) pushes the daily-drop notification to subscribers.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily cycle
+        env:
+          CYCLE_URL: ${{ secrets.CYCLE_URL }}        # e.g. https://your-app.vercel.app/api/cycle
+          CYCLE_TOKEN: ${{ secrets.CYCLE_TOKEN }}    # must match CYCLE_TOKEN on the site
+        run: |
+          if [ -z "$CYCLE_URL" ]; then
+            echo "::warning::CYCLE_URL secret not set — skipping."
+            exit 0
+          fi
+          curl -fsS -X POST "$CYCLE_URL" \
+            -H "Authorization: Bearer $CYCLE_TOKEN" \
+            -H "Content-Type: application/json"
+          echo "Daily cycle triggered."
