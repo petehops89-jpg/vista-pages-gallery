@@ -1,13 +1,13 @@
 {
-  "input": "./gallery",
+  "input": "./gallery/gallery",
   "output": "./build_output",
-  "title": "Fortnite Collection",
+  "title": "Photo Gallery",
   "sort-albums-by": "title",
   "sort-media-by": "filename",
   "download-photos": "copy",
   "cleanup": true,
   "theme": "cards",
-  "css": "./custom.css",
-  "footer": "© Fortnite Collection. All marks, names and imagery are property of Epic Games. Not affiliated with or endorsed by Epic Games.",
+  "css": "custom.css",
+  "footer": "Copyright vistamations",
   "usage-stats": false
 }
