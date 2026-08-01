@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 /**
- * Bento-style tile grid. Pass items with a `span` to make some tiles bigger.
+ * Bento-style tile grid with 16:9 aspect ratio.
+ * Pass items with a `span` to make some tiles bigger.
  * Each tile fades + translates in and lifts on hover for a smooth feel.
  */
 export type BentoItem = {
@@ -23,7 +24,7 @@ const SPAN_CLASS: Record<NonNullable<BentoItem["span"]>, string> = {
 
 export default function BentoGrid({ items }: { items: BentoItem[] }) {
   return (
-    <div className="grid grid-cols-2 auto-rows-[140px] gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {items.map((it, i) => (
         <motion.a
           key={it.src + i}
@@ -33,7 +34,7 @@ export default function BentoGrid({ items }: { items: BentoItem[] }) {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.45, delay: (i % 4) * 0.06, ease: [0.22, 1, 0.36, 1] }}
           whileHover={{ y: -6, scale: 1.02 }}
-          className={`group relative overflow-hidden rounded-xl border border-fn-accent/25 bg-fn-panel/70 shadow-lg ${
+          className={`group relative overflow-hidden rounded-xl border border-fn-accent/25 bg-fn-panel/70 shadow-lg aspect-video ${
             SPAN_CLASS[it.span ?? "sm"]
           }`}
         >

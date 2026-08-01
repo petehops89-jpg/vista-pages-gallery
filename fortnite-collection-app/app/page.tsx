@@ -17,13 +17,28 @@ export default function Home() {
   const [allowPush, setAllowPush] = useState(false);
 
   useEffect(() => {
-    fetch("/api/images")
-      .then((r) => r.json())
-      .then((d: ApiResp) => {
+    let active = true;
+
+    async function loadImages() {
+      try {
+        const res = await fetch("/api/images", { cache: "no-store" });
+        const d: ApiResp = await res.json();
+        if (!active) return;
         setData(d);
-        setBurst((b) => b + 1); // fire powder on first load
-      })
-      .catch(() => setData({ items: [], dayIndex: 0, total: 0, date: "" }));
+        setBurst((b) => b + 1);
+      } catch {
+        if (!active) return;
+        setData({ items: [], dayIndex: 0, total: 0, date: "" });
+      }
+    }
+
+    loadImages();
+
+    const interval = window.setInterval(loadImages, 5000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
   async function subscribePush() {

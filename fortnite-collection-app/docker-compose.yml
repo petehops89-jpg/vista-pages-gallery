@@ -1,6 +1,7 @@
 version: "3.9"
 
 # Architecture:  MCP (orchestrator) <- app (client) ; all behind gateway (ingress+auth)
+# Scheduler triggers /api/cycle at 12:00 UTC daily
 services:
   app:
     build: .
@@ -12,6 +13,8 @@ services:
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:you@example.com}
       - MCP_BASE_URL=http://mcp:4000
+    volumes:
+      - ./public/fortnite-images:/app/public/fortnite-images
     expose:
       - "3000"
     depends_on:
@@ -35,3 +38,11 @@ services:
       - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
     expose:
       - "4000"
+
+  scheduler:
+    build: ./scheduler
+    environment:
+      - APP_URL=http://app:3000
+      - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
+    depends_on:
+      - app

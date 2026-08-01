@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Reads the fortnite-images gallery folder and returns images rotated by the
- * day index, so a different subset leads each day. Pure server-side.
+ * Reads the fortnite-images gallery folder dynamically at request time.
+ * No rebuild needed — changes to the folder appear instantly.
  */
 const IMG_DIR = path.join(process.cwd(), "public", "fortnite-images");
 
@@ -11,7 +11,7 @@ export type GalleryImage = { src: string; title: string; subtitle?: string };
 
 export function getDayIndex(totalFiles: number): number {
   // Deterministic day index from UTC date. Cycles through `totalFiles` days.
-  const start = Date.UTC(2026, 6, 31); // 2026-07-31 baseline
+  const start = Date.UTC(2026, 7, 1); // 2026-08-01 baseline (today)
   const now = Date.UTC(
     new Date().getUTCFullYear(),
     new Date().getUTCMonth(),
@@ -22,15 +22,20 @@ export function getDayIndex(totalFiles: number): number {
 }
 
 export function listImages(): GalleryImage[] {
-  if (!fs.existsSync(IMG_DIR)) return [];
-  const files = fs
-    .readdirSync(IMG_DIR)
-    .filter((f) => /\.(webp|jpg|jpeg|png|gif|avif)$/i.test(f))
-    .sort();
-  return files.map((f) => ({
-    src: `/fortnite-images/${f}`,
-    title: prettify(f),
-  }));
+  try {
+    if (!fs.existsSync(IMG_DIR)) return [];
+    const files = fs
+      .readdirSync(IMG_DIR)
+      .filter((f) => /\.(webp|jpg|jpeg|png|gif|avif)$/i.test(f))
+      .sort();
+    return files.map((f) => ({
+      src: `/fortnite-images/${f}`,
+      title: prettify(f),
+    }));
+  } catch (e) {
+    console.error("Error reading images:", e);
+    return [];
+  }
 }
 
 export function getDailyImages(perDay = 6): {

@@ -1,5 +1,5 @@
 // Minimal PWA service worker: cache shell for offline + handle web-push.
-const CACHE = "fn-collection-v1";
+const CACHE = "fn-collection-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -18,9 +18,16 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  // Never cache the dynamic image API; always go to network for those.
-  if (request.url.includes("/api/")) return;
+  const url = new URL(request.url);
+
+  // Never cache dynamic API responses or image assets; always go to network.
   if (request.method !== "GET") return;
+  if (request.url.includes("/api/")) return;
+  if (url.pathname.includes("/fortnite-images/")) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request))
   );

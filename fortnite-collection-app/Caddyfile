@@ -1,6 +1,4 @@
-# Gateway: single ingress + auth in front of app and MCP.
-# Public routes (/, /api/images, static) are open; sensitive routes
-# (/api/cycle, /api/push, /mcp/*) require the X-Gateway-Key header.
+# Gateway: single ingress in front of app and MCP.
 
 {
   admin off
@@ -8,24 +6,18 @@
 }
 
 :8080 {
-  # Auth gate: block ONLY protected paths that lack the gateway key.
-  @protected {
-    path /api/cycle /api/push* /mcp*
-    not header X-Gateway-Key {env.GATEWAY_KEY}
-  }
-  respond @protected 401
-
-  # Protected: MCP orchestrator (strip /mcp prefix -> server root /)
+  # MCP orchestrator (strip /mcp prefix -> server root /)
   handle_path /mcp* {
     reverse_proxy mcp:4000
   }
 
-  # Protected: app cycle/push (key already enforced above)
+  # App endpoints
   reverse_proxy /api/cycle app:3000
   reverse_proxy /api/push* app:3000
-
-  # Public: app gallery
   reverse_proxy /api/images* app:3000
+  reverse_proxy /api/fortnite-news app:3000
+  
+  # Public: static + gallery
   reverse_proxy /fortnite-images/* app:3000
   reverse_proxy /manifest.webmanifest app:3000
   reverse_proxy /icon.svg app:3000

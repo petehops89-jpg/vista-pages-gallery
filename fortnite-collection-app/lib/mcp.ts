@@ -1,13 +1,14 @@
 /**
- * Client the Next.js app uses to call the internal MCP orchestrator.
- * Direct connection to MCP (internal Docker network).
+ * Client the Next.js app uses to call the internal MCP-like route.
+ * The browser calls the same-origin Next.js API endpoint, which then runs the
+ * operation server-side without needing a direct localhost MCP port.
  */
-const MCP_BASE = process.env.MCP_BASE_URL || "http://localhost:4000";
+const MCP_BASE = "/api/mcp";
 
 type RpcResult = { content?: { type: string; text: string }[]; isError?: boolean };
 
 async function callTool(name: string, args: Record<string, unknown> = {}): Promise<RpcResult> {
-  const res = await fetch(`${MCP_BASE}/`, {
+  const res = await fetch(MCP_BASE, {
     method: "POST",
     headers: {
       "content-type": "application/json",
