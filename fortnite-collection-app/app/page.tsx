@@ -126,8 +126,8 @@ export default function Home() {
 }
 
 const PLACEHOLDER_BENTO: BentoItem[] = [
-  { src: "/fornite-images/01.webp", title: "Loading…", span: "big" },
-  { src: "/fornite-images/02.webp", title: "Loading…" },
-  { src: "/fornite-images/03.webp", title: "Loading…" },
-  { src: "/fornite-images/04.webp", title: "Loading…", span: "wide" },
+  { src: "/fortnite-images/01.webp", title: "Loading…", span: "big" },
+  { src: "/fortnite-images/02.webp", title: "Loading…" },
+  { src: "/fortnite-images/03.webp", title: "Loading…" },
+  { src: "/fortnite-images/04.webp", title: "Loading…", span: "wide" },
 ];

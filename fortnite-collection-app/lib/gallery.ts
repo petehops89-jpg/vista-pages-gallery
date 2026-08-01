@@ -2,10 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Reads the fornite-images gallery folder and returns images rotated by the
+ * Reads the fortnite-images gallery folder and returns images rotated by the
  * day index, so a different subset leads each day. Pure server-side.
  */
-const IMG_DIR = path.join(process.cwd(), "public", "fornite-images");
+const IMG_DIR = path.join(process.cwd(), "public", "fortnite-images");
 
 export type GalleryImage = { src: string; title: string; subtitle?: string };
 
@@ -28,7 +28,7 @@ export function listImages(): GalleryImage[] {
     .filter((f) => /\.(webp|jpg|jpeg|png|gif|avif)$/i.test(f))
     .sort();
   return files.map((f) => ({
-    src: `/fornite-images/${f}`,
+    src: `/fortnite-images/${f}`,
     title: prettify(f),
   }));
 }

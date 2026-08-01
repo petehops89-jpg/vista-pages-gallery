@@ -1,10 +1,8 @@
 /**
  * Client the Next.js app uses to call the internal MCP orchestrator.
- * The MCP server is reached through the gateway (X-Gateway-Key) so the
- * orchestration path is authenticated the same way as direct API calls.
+ * Direct connection to MCP (internal Docker network).
  */
 const MCP_BASE = process.env.MCP_BASE_URL || "http://localhost:4000";
-const GATEWAY_KEY = process.env.GATEWAY_KEY || "";
 
 type RpcResult = { content?: { type: string; text: string }[]; isError?: boolean };
 
@@ -13,7 +11,6 @@ async function callTool(name: string, args: Record<string, unknown> = {}): Promi
     method: "POST",
     headers: {
       "content-type": "application/json",
-      ...(GATEWAY_KEY ? { "X-Gateway-Key": GATEWAY_KEY } : {}),
     },
     body: JSON.stringify({
       jsonrpc: "2.0",
