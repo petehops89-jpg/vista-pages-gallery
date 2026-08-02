@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Architecture:  MCP (orchestrator) <- app (client) ; all behind gateway (ingress+auth)
 # Scheduler triggers /api/cycle at 12:00 UTC daily
 services:
@@ -36,6 +34,10 @@ services:
       - PORT=4000
       - APP_BASE_URL=http://app:3000
       - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
+      - WORKSPACE_DIR=/workspace
+    volumes:
+      # Terence's local workspace — MCP tools can list/read/write it.
+      - ${WORKSPACE_MOUNT:-C:/Users/peteh/.openclaw/workspace}:/workspace
     expose:
       - "4000"
 

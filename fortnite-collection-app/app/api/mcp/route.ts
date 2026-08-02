@@ -9,7 +9,11 @@ type RpcMessage = {
 };
 
 async function appFetch(req: NextRequest, path: string, init: RequestInit = {}) {
-  const url = new URL(path, req.url);
+  // Call the app via its internal address — req.url is the public URL the
+  // browser used (e.g. localhost:8080), which is unreachable from inside the
+  // container. localhost:3000 is this same Next process.
+  const base = process.env.APP_INTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
+  const url = new URL(path, base);
   const res = await fetch(url, init);
   const text = await res.text();
   let body: unknown;

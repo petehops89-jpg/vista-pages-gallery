@@ -18,9 +18,12 @@
  */
 const http = require("http");
 const { URL } = require("url");
+const fs = require("fs");
+const path = require("path");
 
 const PORT = Number(process.env.PORT || 4000);
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://app:3000";
+const WORKSPACE_DIR = process.env.WORKSPACE_DIR || "/workspace";
 const CYCLE_TOKEN = process.env.CYCLE_TOKEN || "changeme";
 
 const TOOLS = [
@@ -38,6 +41,32 @@ const TOOLS = [
     name: "gateway_health",
     description: "Health-check the app service and the MCP orchestrator.",
     inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "workspace_list",
+    description: "List files in Terence's local workspace folder (scoped to WORKSPACE_DIR).",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "workspace_read",
+    description: "Read a text file from Terence's local workspace folder.",
+    inputSchema: {
+      type: "object",
+      properties: { path: { type: "string" } },
+      required: ["path"],
+    },
+  },
+  {
+    name: "workspace_write",
+    description: "Write a text file into Terence's local workspace folder (creates dirs).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string" },
+        content: { type: "string" },
+      },
+      required: ["path", "content"],
+    },
   },
 ];
 
@@ -61,6 +90,42 @@ const HANDLERS = {
   gateway_health: async () => {
     const app = await appFetch("/api/images").catch((e) => ({ status: 0, body: String(e) }));
     return { status: 200, body: { mcp: "ok", app: app.status } };
+  },
+};
+
+// ---- Workspace tools: scoped to WORKSPACE_DIR, traversal-proof ----
+
+function safeJoin(base, rel) {
+  const root = path.resolve(base);
+  const target = path.resolve(root, String(rel || "."));
+  if (target !== root && !target.startsWith(root + path.sep)) {
+    throw new Error("Path escapes workspace");
+  }
+  return target;
+}
+
+const WORKSPACE_HANDLERS = {
+  workspace_list: async () => {
+    if (!fs.existsSync(WORKSPACE_DIR)) return { status: 404, body: { error: "workspace not mounted" } };
+    const entries = fs.readdirSync(WORKSPACE_DIR, { withFileTypes: true }).map((e) => ({
+      name: e.name,
+      type: e.isDirectory() ? "dir" : "file",
+      size: e.isFile() ? fs.statSync(path.join(WORKSPACE_DIR, e.name)).size : null,
+    }));
+    return { status: 200, body: { path: WORKSPACE_DIR, entries } };
+  },
+  workspace_read: async (args = {}) => {
+    const file = safeJoin(WORKSPACE_DIR, args.path);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      return { status: 404, body: { error: "File not found" } };
+    }
+    return { status: 200, body: { path: args.path, content: fs.readFileSync(file, "utf8") } };
+  },
+  workspace_write: async (args = {}) => {
+    const file = safeJoin(WORKSPACE_DIR, args.path);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, String(args.content ?? ""));
+    return { status: 200, body: { path: args.path, ok: true } };
   },
 };
 
@@ -99,7 +164,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (method === "tools/call") {
       const name = params?.name;
-      const handler = HANDLERS[name];
+      const handler = HANDLERS[name] || WORKSPACE_HANDLERS[name];
       if (!handler) return send(res, jsonRpcError(id, -32601, `Unknown tool: ${name}`));
       const out = await handler(params?.arguments || {});
       return send(res, jsonRpc(id, {

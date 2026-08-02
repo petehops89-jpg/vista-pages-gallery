@@ -44,16 +44,19 @@ export function FortniteNews() {
     return () => clearInterval(interval);
   }, []);
 
-  // Don't render if loading or no news
-  if (loading || news.length === 0) {
-    return null;
-  }
-
+  // Always render so the section never silently vanishes.
   return (
     <section id="news" className="mt-8">
       <h2 className="mb-3 font-display text-xl font-bold uppercase tracking-wider text-fn-accent">
-        Latest News
+        Daily Drop · Fortnite News
       </h2>
+      {loading ? (
+        <p className="text-sm text-fn-muted">Loading news…</p>
+      ) : news.length === 0 ? (
+        <p className="text-sm text-fn-muted">
+          No news right now — check back later.
+        </p>
+      ) : (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {news.map((item) => (
           <a
@@ -78,6 +81,7 @@ export function FortniteNews() {
           </a>
         ))}
       </div>
+      )}
     </section>
   );
 }

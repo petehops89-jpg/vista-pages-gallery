@@ -1,0 +1,31 @@
+agent:
+  name: ${AGENT_NAME}
+  role: ${AGENT_ROLE}
+  color: ${AGENT_COLOR}
+  log_level: ${LOG_LEVEL:-info}
+
+mcp:
+  gateway:
+    url: ${MCP_GATEWAY_URL}
+    transport: ${MCP_GATEWAY_TRANSPORT:-streaming}
+    port: 8080
+  
+  tools:
+    github: ${GITHUB_TOOLS:-disabled}
+    docker_hub: ${DOCKER_HUB_TOOLS:-disabled}
+    filesystem: ${FILESYSTEM_TOOLS:-disabled}
+    vs_code: ${VS_CODE_SYNC:-disabled}
+    container_management: ${CONTAINER_MANAGEMENT:-disabled}
+
+workspace:
+  root: /workspace
+  projects: /workspace/projects
+  shared: /workspace/shared
+  cache: /workspace/cache
+
+monitoring:
+  enabled: true
+  interval_seconds: 30
+  watch_paths:
+    - /workspace/projects
+    - /workspace/shared

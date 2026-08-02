@@ -7,7 +7,13 @@ import path from "node:path";
  */
 const IMG_DIR = path.join(process.cwd(), "public", "fortnite-images");
 
-export type GalleryImage = { src: string; title: string; subtitle?: string };
+export type GalleryImage = {
+  src: string;
+  title: string;
+  subtitle?: string;
+  /** File mtime in ms — used as a cache-buster so adds/deletes show instantly. */
+  version?: number;
+};
 
 export function getDayIndex(totalFiles: number): number {
   // Deterministic day index from UTC date. Cycles through `totalFiles` days.
@@ -25,12 +31,19 @@ export function listImages(): GalleryImage[] {
   try {
     if (!fs.existsSync(IMG_DIR)) return [];
     const files = fs
-      .readdirSync(IMG_DIR)
-      .filter((f) => /\.(webp|jpg|jpeg|png|gif|avif)$/i.test(f))
-      .sort();
-    return files.map((f) => ({
-      src: `/fortnite-images/${f}`,
-      title: prettify(f),
+      .readdirSync(IMG_DIR, { withFileTypes: true })
+      .filter(
+        (d) => d.isFile() && /\.(webp|jpg|jpeg|png|gif|avif)$/i.test(d.name)
+      )
+      .map((d) => {
+        const stat = fs.statSync(path.join(IMG_DIR, d.name));
+        return { name: d.name, mtime: stat.mtimeMs };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return files.map(({ name, mtime }) => ({
+      src: `/fortnite-images/${encodeURIComponent(name)}`,
+      title: prettify(name),
+      version: Math.floor(mtime),
     }));
   } catch (e) {
     console.error("Error reading images:", e);
