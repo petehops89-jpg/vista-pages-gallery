@@ -127,14 +127,18 @@ export default function Home() {
         <h2 id="skins" className="mb-3 font-display text-xl font-bold uppercase tracking-wider text-fn-accent">
           Collection
         </h2>
-        {data && data.total === 0 ? (
+        {!data ? (
+          <div className="fn-card rounded-xl p-6 text-center text-sm text-fn-muted">
+            Loading collection…
+          </div>
+        ) : data.total === 0 ? (
           <div className="fn-card rounded-xl p-6 text-center text-sm text-fn-muted">
             No images yet — drop files into{" "}
             <code className="text-fn-accent">public/fortnite-images</code> and
             they&apos;ll appear here automatically.
           </div>
         ) : (
-          <BentoGrid items={bento.length ? bento : PLACEHOLDER_BENTO} />
+          <BentoGrid items={bento} />
         )}
       </FadeIn>
 
@@ -229,11 +233,4 @@ const NEWS_ICONS = [
       </svg>
     ),
   },
-];
-
-const PLACEHOLDER_BENTO: BentoItem[] = [
-  { src: "", title: "Loading…", span: "big" },
-  { src: "", title: "Loading…" },
-  { src: "", title: "Loading…" },
-  { src: "", title: "Loading…", span: "wide" },
 ];

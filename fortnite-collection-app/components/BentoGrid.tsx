@@ -35,7 +35,7 @@ export default function BentoGrid({ items }: { items: BentoItem[] }) {
     <div className="grid grid-cols-2 gap-3 grid-flow-dense">
       {items.map((it, i) => (
         <motion.a
-          key={it.src}
+          key={`${it.src}-${i}`}
           href="#"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
