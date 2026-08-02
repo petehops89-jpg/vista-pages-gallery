@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fn-bg: #0b1020;
+  --fn-panel: #131a2e;
+  --fn-accent: #00e5ff;
+  --fn-accent2: #ff3b6b;
+  --fn-gold: #ffd54a;
+  --fn-text: #e8eefc;
+  --fn-muted: #8ea0c4;
+}
+
+html,
+body {
+  background: radial-gradient(1200px 600px at 50% -10%, #16224a 0%, var(--fn-bg) 60%);
+  color: var(--fn-text);
+  font-family: "Rajdhani", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Respect mobile notches / safe areas (used by PWA + Android wrapper) */
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+@layer components {
+  .fn-card {
+    @apply rounded-xl border bg-fn-panel/80 border-fn-accent/25 shadow-lg;
+  }
+  .fn-btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 font-display font-bold uppercase tracking-wider text-sm transition;
+    background: linear-gradient(180deg, var(--fn-accent), #0090b3);
+    color: #04121a;
+  }
+  .fn-btn:hover {
+    background: linear-gradient(180deg, var(--fn-gold), #d9a400);
+    color: #1a1400;
+  }
+}

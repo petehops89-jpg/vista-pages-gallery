@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from "next/server";
+
+/**
+ * POST /api/cycle
+ * Authorised endpoint the 12:00 cron (GitHub Action) calls to rotate the daily
+ * drop. Protected by a shared bearer token (CYCLE_TOKEN) — this is the
+ * authorisation/authentication gate so the cycle only runs from the trusted job.
+ *
+ * The actual rotation is computed deterministically from the date in
+ * lib/gallery.ts, so "cycling" here means: verify auth, then notify subscribers
+ * that today's drop is live (and return the new day index).
+ */
+export const dynamic = "force-dynamic";
+
+export async function POST(req: NextRequest) {
+  const auth = req.headers.get("authorization") || "";
+  const token = auth.replace(/^Bearer\s+/i, "");
+  const expected = process.env.CYCLE_TOKEN;
+
+  if (!expected || token !== expected) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  // Import lazily so web-push only loads when needed.
+  const { notifyDailyDrop } = await import("@/lib/push");
+  const dayIndex = await notifyDailyDrop();
+
+  return NextResponse.json({ ok: true, dayIndex, cycledAt: new Date().toISOString() });
+}
+

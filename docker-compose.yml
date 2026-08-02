@@ -1,0 +1,173 @@
+version: '3.9'
+
+services:
+  # ===== MCP Gateway Hub (Central MCP Orchestrator) =====
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: mcp-gateway-hub
+    command:
+      - --profile=default_profile
+      - --port=8080
+      - --transport=streaming
+      - --verbose
+      - --log-calls
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./mcp-config:/root/.docker/mcp
+    ports:
+      - "8080:8080"
+    networks:
+      - mcp-hub
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - MCP_SERVERS=github,docker-hub,filesystem
+    depends_on:
+      - gateway-init
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ===== Gateway Init (Setup MCP Profile) =====
+  gateway-init:
+    image: docker:latest
+    container_name: gateway-init
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mcp-hub
+    command: >
+      sh -c "
+      echo 'Initializing MCP profile...' &&
+      docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+        docker:latest sh -c 'echo MCP profile ready'
+      "
+
+  # ===== Agent Base Service (Shared filesystem monitor) =====
+  file-monitor:
+    image: alpine:latest
+    container_name: file-monitor
+    command: sh -c "apk add --no-cache curl && while true; do sleep 60; done"
+    volumes:
+      - ./projects:/workspace/projects
+      - ./shared:/workspace/shared
+      - ./cache:/workspace/cache
+    networks:
+      - shared-services
+    environment:
+      - WORKSPACE_ROOT=/workspace
+
+  # ===== Agent Team: Research Lead (Red Globe) =====
+  agent-research:
+    build:
+      context: ./agents/research
+      dockerfile: Dockerfile
+    container_name: agent-research-lead
+    environment:
+      - AGENT_ROLE=research-lead
+      - AGENT_NAME=ResearchBot
+      - AGENT_COLOR=red
+      - MCP_GATEWAY_URL=http://mcp-gateway:8080
+      - MCP_GATEWAY_TRANSPORT=streaming
+      - GITHUB_TOOLS=enabled
+      - DOCKER_HUB_TOOLS=enabled
+      - FILESYSTEM_TOOLS=enabled
+      - LOG_LEVEL=info
+    volumes:
+      - ./projects:/workspace/projects
+      - ./shared:/workspace/shared
+      - ./cache:/workspace/cache
+      - ./agents/research/config.yaml:/app/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - agents
+      - mcp-hub
+      - shared-services
+    depends_on:
+      mcp-gateway:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  # ===== Agent Team: Development Lead (Blue Globe) =====
+  agent-dev:
+    build:
+      context: ./agents/dev
+      dockerfile: Dockerfile
+    container_name: agent-dev-lead
+    environment:
+      - AGENT_ROLE=dev-lead
+      - AGENT_NAME=DevBot
+      - AGENT_COLOR=blue
+      - MCP_GATEWAY_URL=http://mcp-gateway:8080
+      - MCP_GATEWAY_TRANSPORT=streaming
+      - GITHUB_TOOLS=enabled
+      - DOCKER_HUB_TOOLS=enabled
+      - FILESYSTEM_TOOLS=enabled
+      - VS_CODE_SYNC=enabled
+      - LOG_LEVEL=debug
+    volumes:
+      - ./projects:/workspace/projects
+      - ./shared:/workspace/shared
+      - ./cache:/workspace/cache
+      - ./agents/dev/config.yaml:/app/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - agents
+      - mcp-hub
+      - shared-services
+    depends_on:
+      mcp-gateway:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  # ===== Agent Team: Deployment Lead (Green Globe) =====
+  agent-deploy:
+    build:
+      context: ./agents/deploy
+      dockerfile: Dockerfile
+    container_name: agent-deploy-lead
+    environment:
+      - AGENT_ROLE=deploy-lead
+      - AGENT_NAME=DeployBot
+      - AGENT_COLOR=green
+      - MCP_GATEWAY_URL=http://mcp-gateway:8080
+      - MCP_GATEWAY_TRANSPORT=streaming
+      - GITHUB_TOOLS=enabled
+      - DOCKER_HUB_TOOLS=enabled
+      - FILESYSTEM_TOOLS=enabled
+      - CONTAINER_MANAGEMENT=enabled
+      - LOG_LEVEL=info
+    volumes:
+      - ./projects:/workspace/projects
+      - ./shared:/workspace/shared
+      - ./cache:/workspace/cache
+      - ./agents/deploy/config.yaml:/app/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - agents
+      - mcp-hub
+      - shared-services
+    depends_on:
+      mcp-gateway:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+networks:
+  mcp-hub:
+    driver: bridge
+    name: mcp-hub
+  agents:
+    driver: bridge
+    name: agents-network
+  shared-services:
+    driver: bridge
+    name: shared-services
+
+volumes:
+  mcp-config:
+    driver: local

@@ -29,6 +29,8 @@ jobs:
             gallery-build-
       - name: Build Gallery 🔧
         run: docker run -v "$(pwd):/work" ghcr.io/thumbsup/thumbsup /bin/sh -c "cd /work/ && thumbsup --config config.json"
+      - name: Inject Perchance embed 💬
+        run: python3 inject_embed.py
       - name: Package and upload artifact 📦
         uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,18 @@
+{
+  "name": "Fortnite Collection",
+  "short_name": "FN Collection",
+  "description": "Mobile-first Fortnite collection gallery with animated browsing.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
