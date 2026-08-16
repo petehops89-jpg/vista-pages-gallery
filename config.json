@@ -1,5 +1,5 @@
 {
-  "input": "./gallery",
+  "input": "./gallery/gallery",
   "output": "./build_output",
   "title": "Photo Gallery",
   "sort-albums-by": "title",
@@ -7,7 +7,7 @@
   "download-photos": "copy",
   "cleanup": true,
   "theme": "cards",
-  "css": "./custom.css",
-  "footer": "Copyright Text",
+  "css": "custom.css",
+  "footer": "Copyright vistamations",
   "usage-stats": false
 }

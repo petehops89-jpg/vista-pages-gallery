@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e14" />
+<title>VOX Relay</title>
+<style>
+  :root{ --bg:#0a0e14; --fg:#e5e7eb; --acc:#22d3ee; --mut:#9ca3af; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.4 system-ui,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top) 14px 14px}
+  h1{font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin:.4em 0}
+  .row{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+  button{font:inherit;border:1px solid #374151;background:#111827;color:var(--fg);
+    padding:10px 14px;border-radius:10px;min-height:44px}
+  button.primary{background:var(--acc);color:#062;border-color:var(--acc);font-weight:700}
+  button:disabled{opacity:.4}
+  #status{font-size:12px;color:var(--mut)}
+  #host{width:100%;padding:9px;border-radius:8px;border:1px solid #374151;background:#0f1620;color:var(--fg)}
+  #transcript{margin-top:12px;min-height:80px;border:1px solid #1f2937;border-radius:10px;
+    padding:10px;background:#0f1620;white-space:pre-wrap;font-size:15px}
+  .pill{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #374151;color:var(--mut)}
+</style>
+</head>
+<body>
+  <h1>VOX &middot; mobile &rarr; computer</h1>
+  <div class="row">
+    <input id="host" placeholder="http://192.168.20.2:3007" value="" />
+    <span class="pill" id="net">offline</span>
+  </div>
+  <div class="row">
+    <button id="talk" class="primary">Hold to talk</button>
+    <button id="toggle" class="pill">Mic: off</button>
+    <button id="send">Send</button>
+  </div>
+  <div id="status">STT via in-browser Web Speech API &mdash; Windows never touches audio.</div>
+  <div id="transcript">…</div>
+
+<script>
+const $ = (s)=>document.querySelector(s);
+let recognizing=false, finalText="", recognition=null;
+
+function setNet(ok){ $("#net").textContent = ok?"online":"offline"; }
+
+if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+  $("#status").textContent = "Web Speech API not supported in this browser. Use Chrome/Edge on the phone.";
+} else {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = true; recognition.interimResults = true;
+  recognition.lang = "en-AU";
+  recognition.onresult = (e)=>{
+    let inter="";
+    for (let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if (e.results[i].isFinal) finalText += t+" "; else inter=t;
+    }
+    $("#transcript").textContent = finalText + (inter?("[ "+inter+" ]"):"");
+  };
+  recognition.onerror = (e)=>{ $("#status").textContent="STT error: "+e.error; };
+  recognition.onend = ()=>{ recognizing=false; $("#toggle").textContent="Mic: off"; };
+}
+
+async function ping(){
+  const host=$("#host").value.trim(); if(!host) return setNet(false);
+  try{ const r=await fetch(host+"/voice/health"); setNet(r.ok); }
+  catch{ setNet(false); }
+}
+$("#host").addEventListener("change", ping);
+
+$("#talk").addEventListener("pointerdown", ()=>{
+  if(!recognition) return;
+  if(!recognizing){ recognition.start(); recognizing=true; $("#toggle").textContent="Mic: on"; }
+});
+$("#talk").addEventListener("pointerup", ()=>{ if(recognition && recognizing){ recognition.stop(); } });
+$("#toggle").addEventListener("click", ()=>{
+  if(!recognition) return;
+  if(recognizing){ recognition.stop(); } else { recognition.start(); recognizing=true; $("#toggle").textContent="Mic: on"; }
+});
+
+$("#send").addEventListener("click", async ()=>{
+  const text=finalText.trim(); const host=$("#host").value.trim();
+  if(!text||!host){ $("#status").textContent="Need text + host."; return; }
+  $("#status").textContent="sending…";
+  try{
+    const r=await fetch(host+"/voice",{method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({text, lang:recognition?recognition.lang:"en-AU", device:"mobile"})});
+    const j=await r.json();
+    $("#status").textContent = j.ok ? ("sent "+j.id) : ("err "+j.error);
+    if(j.ok){ finalText=""; $("#transcript").textContent="…"; }
+  }catch(e){ $("#status").textContent="send failed: "+e.message; setNet(false); }
+});
+
+ping();
+</script>
+</body>
+</html>

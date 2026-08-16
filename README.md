@@ -64,12 +64,23 @@ You can learn more about the configuration file here: https://thumbsup.github.io
 
 ![newfolder](https://media.giphy.com/media/455paOHOAWr4KWNOtg/giphy.gif)
 
-#### Adding Medias
+### Adding Medias
 1. Go to gallery folder. Open any albums if any.
 2. Click on Upload files button
 3. Select files. Once it finishes upload, click Commit Changes button.
 
 ![selectmedia](https://media.giphy.com/media/2uIfenjYx5anbQOEAo/giphy.gif)
+
+## Fortnite Collection customisation
+
+This fork is themed as a **Fortnite collection** gallery with a Perchance generator chat embed.
+
+- **Title / footer / theme** are set in [`config.json`](config.json).
+- **Colours, fonts, and the embed panel styling** live in [`custom.css`](custom.css).
+- **The Perchance embed** is injected at build time by [`inject_embed.py`](inject_embed.py) so it survives Thumbsup rebuilds. To use your real generator, edit `PERCHANCE_URL` at the top of that script (prefer the `https://perchance.org/embed/...` form for clean iframe rendering). The panel floats top-right, ~25% down the page, and is collapsible.
+- **Images** go in [`gallery/`](gallery/) — each subfolder is an album. Replace the placeholder images in `Skins/` and `Loadouts/` with your generated collection.
+
+> Note: the placeholder Perchance URL `fortnite-info-persona` is a stub — swap it for your actual generator.
 
 #### Finding your website URL
 If you had done all the above steps then your website will be live now. Please check Github Actions tab in your repository for the status of the deployment.  Once it is done, Go to settings tab again and scroll down to the Github Pages section to find your public gallery URL.

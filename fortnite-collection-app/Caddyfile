@@ -1,0 +1,31 @@
+# Gateway: single ingress in front of app and MCP.
+
+{
+  admin off
+  auto_https off
+}
+
+:8080 {
+  # MCP orchestrator (strip /mcp prefix -> server root /)
+  handle_path /mcp* {
+    reverse_proxy mcp:4000
+  }
+
+  # App endpoints
+  reverse_proxy /api/mcp app:3000
+  reverse_proxy /api/cycle app:3000
+  reverse_proxy /api/push* app:3000
+  reverse_proxy /api/images* app:3000
+  reverse_proxy /api/fortnite-news app:3000
+  
+  # Public: static + gallery
+  reverse_proxy /fortnite-images/* app:3000
+  reverse_proxy /manifest.webmanifest app:3000
+  reverse_proxy /icon.svg app:3000
+  reverse_proxy /sw.js app:3000
+  reverse_proxy /sw-register.js app:3000
+  reverse_proxy /_next/* app:3000
+
+  # Catch-all: no path matcher = matches everything (a bare `/` only matches root)
+  reverse_proxy app:3000
+}

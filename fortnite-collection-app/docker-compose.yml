@@ -1,0 +1,50 @@
+# Architecture:  MCP (orchestrator) <- app (client) ; all behind gateway (ingress+auth)
+# Scheduler triggers /api/cycle at 12:00 UTC daily
+services:
+  app:
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
+      - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:you@example.com}
+      - MCP_BASE_URL=http://mcp:4000
+    volumes:
+      - ./public/fortnite-images:/app/public/fortnite-images
+    expose:
+      - "3000"
+    depends_on:
+      - mcp
+
+  gateway:
+    image: caddy:2-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+      - mcp
+
+  mcp:
+    build: ./mcp-server
+    environment:
+      - PORT=4000
+      - APP_BASE_URL=http://app:3000
+      - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
+      - WORKSPACE_DIR=/workspace
+    volumes:
+      # Terence's local workspace — MCP tools can list/read/write it.
+      - ${WORKSPACE_MOUNT:-C:/Users/peteh/.openclaw/workspace}:/workspace
+    expose:
+      - "4000"
+
+  scheduler:
+    build: ./scheduler
+    environment:
+      - APP_URL=http://app:3000
+      - CYCLE_TOKEN=${CYCLE_TOKEN:-changeme}
+    depends_on:
+      - app
