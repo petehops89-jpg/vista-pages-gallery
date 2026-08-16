@@ -10,8 +10,6 @@ import { NextRequest, NextResponse } from "next/server";
  * lib/gallery.ts, so "cycling" here means: verify auth, then notify subscribers
  * that today's drop is live (and return the new day index).
  */
-export const dynamic = "force-dynamic";
-
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization") || "";
   const token = auth.replace(/^Bearer\s+/i, "");

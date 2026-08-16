@@ -9,8 +9,10 @@ import { HexBackdrop, LogoMark } from "@/components/SvgDecor";
 import { mcpTriggerDailyCycle } from "@/lib/mcp";
 import GlowOrbs from "@/components/GlowOrbs";
 import { FortniteNews } from "@/components/FortniteNews";
+import FloatingBentoTile from "@/components/FloatingBentoTile";
+import ResizeMoveBento from "@/components/ResizeMoveBento";
 
-type ImageDoc = { src: string; title: string; subtitle?: string; version?: number };
+type ImageDoc = { src: string; title: string; subtitle?: string; version?: number; aspectRatio?: "16:9" | "6:1" };
 type ApiResp = { items: ImageDoc[]; dayIndex: number; total: number; date: string };
 
 export default function Home() {
@@ -75,6 +77,7 @@ export default function Home() {
   }
 
   const [mcpStatus, setMcpStatus] = useState<string | null>(null);
+  const [showTile, setShowTile] = useState(false);
   async function runViaMcp() {
     setMcpStatus("orchestrating…");
     try {
@@ -87,13 +90,14 @@ export default function Home() {
     }
   }
 
-  const bento: BentoItem[] = (data?.items ?? []).map((it, i) => ({
+  const bento: BentoItem[] = (data?.items ?? []).map((it) => ({
     src: it.version ? `${it.src}?v=${it.version}` : it.src,
     title: it.title,
     subtitle: it.subtitle,
-    // Rhythm: one full-width 6:1 strip, then two 16:9 tiles — repeat.
-    // Every 2-col row is fully filled, no orphan cells.
-    span: i % 3 === 0 ? "wide" : "sm",
+    // Assign span based on actual image aspect ratio detected from file dimensions.
+    // 6:1 images → "wide" or "big" (full-width strips)
+    // 16:9 images → "sm" or "tall" (standard tiles)
+    span: it.aspectRatio === "6:1" ? "wide" : "sm",
   }));
 
   if (!isMounted) {
@@ -138,7 +142,10 @@ export default function Home() {
             they&apos;ll appear here automatically.
           </div>
         ) : (
-          <BentoGrid items={bento} />
+          <div className="relative">
+            <BentoGrid items={bento} />
+            <ResizeMoveBento title="Move/Resize" subtitle="drag handle · resize grip" initialX={12} initialY={12} />
+          </div>
         )}
       </FadeIn>
 
@@ -176,6 +183,12 @@ export default function Home() {
           <button className="fn-btn mt-3 ml-2" onClick={runViaMcp}>
             Run cycle via MCP
           </button>
+          <button
+            className="fn-btn mt-3 ml-2"
+            onClick={() => setShowTile((v) => !v)}
+          >
+            {showTile ? "Hide floating tile" : "Show floating tile"}
+          </button>
           {mcpStatus && (
             <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-black/40 p-3 text-xs text-fn-accent">
               {mcpStatus}
@@ -185,6 +198,8 @@ export default function Home() {
       </FadeIn>
 
       <FortniteNews />
+
+      {showTile && <FloatingBentoTile />}
 
       <footer className="mt-10 text-center text-xs text-fn-muted">
         © Fortnite Collection. Not affiliated with Epic Games.

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import type { PushSubscription } from "web-push";
 import { addSubscription, getPublicKey } from "@/lib/push";
 
-export const dynamic = "force-dynamic";
-
 /** GET /api/push?pub=1 — return the VAPID public key for the browser to subscribe. */
 export async function GET(req: NextRequest) {
   if (req.nextUrl.searchParams.get("pub") === "1") {

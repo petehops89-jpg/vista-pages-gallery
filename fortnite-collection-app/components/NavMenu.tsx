@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 const LINKS = [
   { label: "Home", href: "#home" },
   { label: "Daily Drop", href: "#drop" },
+  { label: "Hub", href: "/hub" },
 ];
 
 /** Mobile-first top bar with a smooth expand/collapse hover/tap menu. */

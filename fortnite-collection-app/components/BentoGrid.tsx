@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { CSSProperties } from "react";
+import MiniClock from "./MiniClock";
 
 /**
  * Bento-style tile grid with 16:9 aspect ratio.
@@ -67,6 +68,9 @@ export default function BentoGrid({ items }: { items: BentoItem[] }) {
             />
           )}
           <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+          <span className="absolute right-2 top-2 rounded bg-black/40 px-1.5 py-0.5">
+            <MiniClock />
+          </span>
           <span className="absolute bottom-0 left-0 p-3">
             <span className="block font-display text-sm font-bold uppercase tracking-wide text-white">
               {it.title}

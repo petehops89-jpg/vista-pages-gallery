@@ -1,0 +1,21 @@
+name = "vistamations"
+main = "./worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Deploy target: vistamations.com (claimed — verify DNS/zone on your machine)
+# Build:  npm run build  ->  static export in ./out
+# Publish:  wrangler deploy   (requires `wrangler login` / CLOUDFLARE_API_TOKEN on YOUR machine)
+
+[assets]
+directory = "./out"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# Cache + security headers enforced at the edge (Workers runtime).
+[observability]
+enabled = true
+
+# --- routing: serve static site, proxy live API to local daemon ---
+# The Worker below: tries ASSETS first; for /api/* it proxies to the
+# local control-room daemon (configured via ENV on deploy).

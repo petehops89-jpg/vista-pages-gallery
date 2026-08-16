@@ -8,8 +8,6 @@ import { NextRequest, NextResponse } from "next/server";
  * generator data, or an external Fortnite stats API). Never proxy arbitrary
  * hosts in production — keep an allowlist.
  */
-export const dynamic = "force-dynamic";
-
 const ALLOWLIST = [
   "perchance.org",
   "api.fortniteapi.io",

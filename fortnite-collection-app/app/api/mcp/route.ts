@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 type RpcMessage = {
   id?: number | string | null;
   method?: string;
